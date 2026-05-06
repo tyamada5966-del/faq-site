@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>社内FAQ — お客様対応サポート</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; background: #f5f5f3; color: #1a1a1a; min-height: 100vh; }
+
+header { background: #fff; border-bottom: 1px solid #e5e5e3; padding: 0 2rem; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; gap: 1rem; height: 56px; }
+header h1 { font-size: 16px; font-weight: 600; color: #1a1a1a; white-space: nowrap; }
+header .sub { font-size: 12px; color: #888; }
+.reload-btn { margin-left: auto; padding: 5px 14px; font-size: 12px; border-radius: 6px; border: 1px solid #d0d0ce; background: #fff; color: #555; cursor: pointer; font-family: inherit; }
+.reload-btn:hover { background: #f5f5f3; }
+
+.container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+/* ロード状態 */
+.load-panel { background: #fff; border-radius: 12px; border: 1px solid #e5e5e3; padding: 2.5rem 2rem; text-align: center; margin-bottom: 1.5rem; }
+.load-panel h2 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+.load-panel p { font-size: 13px; color: #666; margin-bottom: 1.5rem; line-height: 1.6; }
+.load-area { border: 2px dashed #d0d0ce; border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; cursor: pointer; transition: border-color .15s; }
+.load-area:hover { border-color: #888; }
+.load-area input { display: none; }
+.load-area label { cursor: pointer; display: block; }
+.load-area .icon { font-size: 32px; margin-bottom: 8px; }
+.load-area .txt { font-size: 14px; color: #555; }
+.load-area .hint { font-size: 12px; color: #aaa; margin-top: 4px; }
+.or { font-size: 12px; color: #aaa; margin: 0.75rem 0; }
+.demo-btn { padding: 8px 20px; font-size: 13px; font-weight: 600; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; }
+.demo-btn:hover { background: #333; }
+
+.status-bar { font-size: 12px; padding: 8px 14px; border-radius: 8px; margin-bottom: 1rem; display: none; }
+.status-bar.ok  { background: #e8f5e0; color: #3a6e10; border: 1px solid #b0d890; }
+.status-bar.err { background: #fde8e8; color: #b02020; border: 1px solid #f0b0b0; }
+.status-bar.info{ background: #e8f0fe; color: #1a56cc; border: 1px solid #a0c0f0; }
+
+/* メイン */
+.hero { background: #fff; border-radius: 12px; padding: 2rem 1.5rem; text-align: center; margin-bottom: 1.5rem; border: 1px solid #e5e5e3; display:none; }
+.hero h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+.hero p { font-size: 14px; color: #666; margin-bottom: 1.25rem; }
+.search-box { display: flex; gap: 8px; max-width: 520px; margin: 0 auto; }
+.search-box input { flex: 1; padding: 10px 14px; font-size: 14px; border: 1px solid #d0d0ce; border-radius: 8px; outline: none; font-family: inherit; }
+.search-box input:focus { border-color: #888; }
+.search-box button { padding: 10px 20px; font-size: 13px; font-weight: 600; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; }
+.search-box button:hover { background: #333; }
+
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.25rem; display:none; }
+.stat-card { background: #fff; border-radius: 8px; padding: 0.85rem 1rem; text-align: center; border: 1px solid #e5e5e3; }
+.stat-card .num { font-size: 24px; font-weight: 600; color: #1a1a1a; }
+.stat-card .lbl { font-size: 11px; color: #888; margin-top: 2px; }
+
+.controls { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; display:none; }
+.cat-btn { padding: 6px 14px; font-size: 12px; border-radius: 999px; border: 1px solid #d0d0ce; background: #fff; color: #555; cursor: pointer; font-family: inherit; transition: all .15s; }
+.cat-btn:hover { background: #f5f5f3; color: #1a1a1a; }
+.cat-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+.sort-sel { margin-left: auto; font-size: 12px; padding: 6px 10px; border-radius: 8px; border: 1px solid #d0d0ce; background: #fff; color: #555; font-family: inherit; cursor: pointer; }
+
+.result-count { font-size: 12px; color: #888; margin-bottom: 0.75rem; }
+.faq-list { display: flex; flex-direction: column; gap: 6px; }
+
+.faq-item { background: #fff; border: 1px solid #e5e5e3; border-radius: 10px; overflow: hidden; transition: border-color .15s, box-shadow .15s; }
+.faq-item:hover { border-color: #c0c0be; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.faq-item.open { border-color: #a0a09e; }
+.faq-q { display: flex; align-items: center; gap: 10px; padding: 0.9rem 1.1rem; cursor: pointer; user-select: none; }
+.faq-badges { display: flex; gap: 6px; flex-shrink: 0; }
+.badge { font-size: 10px; padding: 2px 9px; border-radius: 999px; white-space: nowrap; font-weight: 600; }
+.badge-cat { background: #f0f0ee; color: #555; }
+.badge-high { background: #fde8e8; color: #b02020; }
+.badge-mid  { background: #fef3d8; color: #8a5a00; }
+.badge-low  { background: #e8f5e0; color: #3a6e10; }
+.faq-q-text { flex: 1; font-size: 14px; font-weight: 500; color: #1a1a1a; }
+.faq-dept { font-size: 11px; color: #888; flex-shrink: 0; }
+.faq-arrow { font-size: 11px; color: #aaa; transition: transform .2s; flex-shrink: 0; margin-left: 4px; }
+.faq-item.open .faq-arrow { transform: rotate(180deg); }
+.faq-body { display: none; border-top: 1px solid #eee; padding: 1rem 1.1rem; }
+.faq-item.open .faq-body { display: block; }
+.tab-row { display: flex; gap: 4px; margin-bottom: 0.75rem; }
+.tab { padding: 4px 13px; font-size: 12px; border-radius: 6px; border: 1px solid #e0e0de; background: #f5f5f3; color: #666; cursor: pointer; font-family: inherit; transition: all .1s; }
+.tab:hover { background: #eee; }
+.tab.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.ans-text { font-size: 13px; color: #1a1a1a; line-height: 1.75; }
+.note-text { font-size: 13px; color: #8a5a00; background: #fef9ec; border-radius: 6px; padding: 8px 12px; }
+.mail-subject { font-size: 12px; color: #555; background: #f5f5f3; border-radius: 6px; padding: 7px 11px; margin-bottom: 8px; }
+.mail-subject span { font-weight: 600; color: #888; margin-right: 6px; }
+.mail-draft { font-size: 13px; line-height: 1.75; color: #1a1a1a; white-space: pre-wrap; background: #f9f9f7; border: 1px solid #eee; border-radius: 6px; padding: 12px 14px; }
+.copy-btn { margin-top: 8px; padding: 6px 16px; font-size: 12px; border-radius: 6px; border: 1px solid #d0d0ce; background: #fff; color: #555; cursor: pointer; font-family: inherit; }
+.copy-btn:hover { background: #f5f5f3; }
+.copy-btn.copied { background: #e8f5e0; color: #3a6e10; border-color: #b0d890; }
+.no-result { text-align: center; padding: 3rem; font-size: 14px; color: #888; }
+.no-result .icon { font-size: 36px; margin-bottom: 0.5rem; }
+
+footer { text-align: center; padding: 2rem; font-size: 12px; color: #aaa; border-top: 1px solid #e5e5e3; margin-top: 2rem; background: #fff; }
+.csv-name { font-size: 11px; color: #aaa; margin-left: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>社内FAQ</h1>
+  <span class="sub">お客様対応サポートシステム</span>
+  <span class="csv-name" id="csv-name"></span>
+  <button class="reload-btn" onclick="showLoadPanel()" id="reload-btn" style="display:none">📂 CSVを変更</button>
+</header>
+
+<div class="container">
+
+  <!-- ロードパネル -->
+  <div class="load-panel" id="load-panel">
+    <h2>📂 CSVファイルを読み込む</h2>
+    <p>同梱の <strong>faq_data.csv</strong> を選択するか、デモデータで試すことができます。<br>
+    CSVを更新してから再読み込みするだけでFAQが自動反映されます。</p>
+    <div class="load-area" onclick="document.getElementById('csv-input').click()">
+      <input type="file" id="csv-input" accept=".csv" onchange="loadCSV(this)">
+      <label>
+        <div class="icon">📄</div>
+        <div class="txt">faq_data.csv を選択</div>
+        <div class="hint">クリックまたはドラッグ＆ドロップ</div>
+      </label>
+    </div>
+    <div class="or">— または —</div>
+    <button class="demo-btn" onclick="loadDemo()">サンプルデータで試す</button>
+  </div>
+
+  <div class="status-bar" id="status-bar"></div>
+
+  <!-- メイン -->
+  <div class="hero" id="hero">
+    <h2>お客様対応FAQ</h2>
+    <p>よくある問い合わせと回答・メールドラフトを素早く検索できます</p>
+    <div class="search-box">
+      <input type="text" id="search" placeholder="キーワードで検索（スペース区切りでAND検索）" oninput="render()">
+      <button onclick="document.getElementById('search').value='';render()">クリア</button>
+    </div>
+  </div>
+
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card"><div class="num" id="s-total">—</div><div class="lbl">FAQ総数</div></div>
+    <div class="stat-card"><div class="num" id="s-high">—</div><div class="lbl">優先度：高</div></div>
+    <div class="stat-card"><div class="num" id="s-cats">—</div><div class="lbl">カテゴリ数</div></div>
+    <div class="stat-card"><div class="num" id="s-shown">—</div><div class="lbl">表示中</div></div>
+  </div>
+
+  <div class="controls" id="controls">
+    <button class="cat-btn active" onclick="setCat('')" id="btn-all">すべて</button>
+    <div id="cat-btns"></div>
+    <select class="sort-sel" onchange="render()" id="sort">
+      <option value="id">ID順</option>
+      <option value="pri">優先度順</option>
+      <option value="cat">カテゴリ順</option>
+    </select>
+  </div>
+
+  <div class="result-count" id="rc"></div>
+  <div class="faq-list" id="list"></div>
+</div>
+
+<footer>社内FAQ管理システム — CSVファイルを更新するだけでFAQが自動反映されます</footer>
+
+<script>
+// ---- CSV パーサー（改行・カンマ含むフィールド対応）----
+function parseCSV(text) {
+  const rows = [];
+  let i = 0;
+  while (i < text.length) {
+    const row = [];
+    while (i < text.length) {
+      if (text[i] === '"') {
+        let field = '';
+        i++; // 開き引用符をスキップ
+        while (i < text.length) {
+          if (text[i] === '"' && text[i+1] === '"') { field += '"'; i += 2; }
+          else if (text[i] === '"') { i++; break; }
+          else { field += text[i++]; }
+        }
+        row.push(field);
+      } else {
+        let field = '';
+        while (i < text.length && text[i] !== ',' && text[i] !== '\n' && text[i] !== '\r') {
+          field += text[i++];
+        }
+        row.push(field.trim());
+      }
+      if (i < text.length && text[i] === ',') { i++; }
+      else { break; }
+    }
+    if (text[i] === '\r') i++;
+    if (text[i] === '\n') i++;
+    if (row.length > 1 || (row.length === 1 && row[0] !== '')) rows.push(row);
+  }
+  return rows;
+}
+
+// ---- グローバル状態 ----
+let DATA = [];
+let activeCat = '';
+const PRI = {"高":0,"中":1,"低":2};
+
+// ---- CSVファイル読み込み ----
+function loadCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const rows = parseCSV(e.target.result);
+      const dataRows = rows.slice(1).filter(r => r.length >= 8 && r[0]);
+      if (dataRows.length === 0) throw new Error('データが見つかりません');
+      DATA = dataRows;
+      showStatus(`✅ ${file.name} を読み込みました（${DATA.length}件）`, 'ok');
+      document.getElementById('csv-name').textContent = `📄 ${file.name}`;
+      showMain();
+    } catch(err) {
+      showStatus(`❌ 読み込みエラー: ${err.message}`, 'err');
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+// ---- ドラッグ&ドロップ ----
+const loadArea = document.querySelector('.load-area');
+loadArea.addEventListener('dragover', e => { e.preventDefault(); loadArea.style.borderColor = '#555'; });
+loadArea.addEventListener('dragleave', () => { loadArea.style.borderColor = '#d0d0ce'; });
+loadArea.addEventListener('drop', e => {
+  e.preventDefault();
+  loadArea.style.borderColor = '#d0d0ce';
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.csv')) {
+    const fakeInput = { files: [file] };
+    loadCSV(fakeInput);
+  } else {
+    showStatus('❌ CSVファイルを選択してください', 'err');
+  }
+});
+
+// ---- デモデータ ----
+function loadDemo() {
+  // 最小限のデモデータ（3件）
+  DATA = [
+    ["001","料金・請求","請求書の発行はいつですか？","毎月末締め翌月10日に郵送またはメールで送付します。","Re: 請求書発行日のご確認","{{お客様名}} 様\n\nいつもお世話になっております。{{担当者名}}でございます。\n\nご請求書は毎月末締め翌月10日にご登録のメールアドレスへお送りしております。\n\n引き続きよろしくお願いいたします。","経理部","中","","請求 invoice billing 請求書 翌月"],
+    ["002","納期・配送","注文から納品まで何日かかりますか？","通常3〜5営業日。繁忙期は7〜10営業日。","Re: 納期のご確認","{{お客様名}} 様\n\nいつもお世話になっております。{{担当者名}}でございます。\n\n通常3〜5営業日でのお届けとなります。\n\n引き続きよろしくお願いいたします。","物流部","高","繁忙期注意","納期 delivery 何日 いつ届く"],
+    ["003","アカウント","メールアドレスを変更したい","マイページのアカウント設定から変更可能。","Re: メールアドレス変更のご案内","{{お客様名}} 様\n\nいつもお世話になっております。{{担当者名}}でございます。\n\nメールアドレスの変更は、マイページ＞アカウント設定から承っております。\n\n引き続きよろしくお願いいたします。","カスタマーサポート","低","","メールアドレス email アドレス 変更"],
+  ];
+  showStatus('ℹ️ デモデータ（3件）を表示しています。同梱の faq_data.csv を読み込むと全50件が使えます。', 'info');
+  document.getElementById('csv-name').textContent = '📄 デモデータ';
+  showMain();
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('status-bar');
+  el.textContent = msg;
+  el.className = `status-bar ${type}`;
+  el.style.display = 'block';
+}
+
+function showLoadPanel() {
+  document.getElementById('load-panel').style.display = 'block';
+  document.getElementById('hero').style.display = 'none';
+  document.getElementById('stats-row').style.display = 'none';
+  document.getElementById('controls').style.display = 'none';
+  document.getElementById('list').innerHTML = '';
+  document.getElementById('rc').textContent = '';
+  document.getElementById('reload-btn').style.display = 'none';
+  activeCat = '';
+  DATA = [];
+}
+
+function showMain() {
+  document.getElementById('load-panel').style.display = 'none';
+  document.getElementById('hero').style.display = 'block';
+  document.getElementById('stats-row').style.display = 'grid';
+  document.getElementById('controls').style.display = 'flex';
+  document.getElementById('reload-btn').style.display = 'block';
+  buildCatButtons();
+  render();
+}
+
+// ---- カテゴリボタン動的生成 ----
+function buildCatButtons() {
+  const cats = [...new Set(DATA.map(r => r[1]).filter(Boolean))];
+  const wrap = document.getElementById('cat-btns');
+  wrap.innerHTML = cats.map(c =>
+    `<button class="cat-btn" onclick="setCat('${c}')" id="catbtn-${encodeURIComponent(c)}">${c}</button>`
+  ).join('');
+  document.getElementById('s-cats').textContent = cats.length;
+}
+
+function setCat(c) {
+  activeCat = c;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  const id = c ? `catbtn-${encodeURIComponent(c)}` : 'btn-all';
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  render();
+}
+
+// ---- レンダリング ----
+function render() {
+  const q = (document.getElementById('search').value || '').trim().toLowerCase();
+  const keywords = q ? q.split(/[\s　]+/).filter(k => k.length > 0) : [];
+  const sort = document.getElementById('sort').value;
+
+  let rows = DATA.filter(r => {
+    if (activeCat && r[1] !== activeCat) return false;
+    if (keywords.length > 0) {
+      const target = [r[2],r[3],r[1],r[6],r[8],r[9]||''].join(' ').toLowerCase();
+      return keywords.every(k => target.includes(k));
+    }
+    return true;
+  });
+
+  if (sort === 'pri') rows.sort((a,b) => (PRI[a[7]]??9) - (PRI[b[7]]??9));
+  else if (sort === 'cat') rows.sort((a,b) => (a[1]||'').localeCompare(b[1]||'','ja'));
+
+  document.getElementById('s-total').textContent = DATA.length;
+  document.getElementById('s-high').textContent = DATA.filter(r=>r[7]==='高').length;
+  document.getElementById('s-shown').textContent = rows.length;
+  document.getElementById('rc').textContent = rows.length + ' 件表示中';
+
+  const list = document.getElementById('list');
+  if (!rows.length) {
+    list.innerHTML = '<div class="no-result"><div class="icon">🔍</div>該当するFAQが見つかりませんでした</div>';
+    return;
+  }
+  list.innerHTML = rows.map(r => {
+    const [id,cat,q2,ans,subj,draft,dept,pri,note,kw] = r;
+    const bc = pri==='高'?'badge-high':pri==='中'?'badge-mid':'badge-low';
+    const safeId = id.replace(/[^a-zA-Z0-9]/g,'_');
+    const noteTab = note ? `<button class="tab" onclick="switchTab(event,'${safeId}','note')">備考</button>` : '';
+    const noteContent = note ? `<div class="tab-content" id="tc-${safeId}-note"><div class="note-text">⚠ ${note}</div></div>` : '';
+    return `<div class="faq-item" id="item-${safeId}">
+      <div class="faq-q" onclick="toggle('${safeId}')">
+        <div class="faq-badges">
+          <span class="badge badge-cat">${cat||''}</span>
+          <span class="badge ${bc}">${pri||''}</span>
+        </div>
+        <div class="faq-q-text">${q2||''}</div>
+        <div class="faq-dept">${dept||''}</div>
+        <div class="faq-arrow">▼</div>
+      </div>
+      <div class="faq-body">
+        <div class="tab-row">
+          <button class="tab active" onclick="switchTab(event,'${safeId}','ans')">回答</button>
+          <button class="tab" onclick="switchTab(event,'${safeId}','mail')">メールドラフト</button>
+          ${noteTab}
+        </div>
+        <div class="tab-content active" id="tc-${safeId}-ans"><div class="ans-text">${ans||''}</div></div>
+        <div class="tab-content" id="tc-${safeId}-mail">
+          <div class="mail-subject"><span>件名</span>${subj||''}</div>
+          <div class="mail-draft" id="draft-${safeId}">${(draft||'').replace(/\n/g,'&#10;')}</div>
+          <button class="copy-btn" onclick="copyDraft('${safeId}',this)">コピー</button>
+        </div>
+        ${noteContent}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggle(id) { document.getElementById('item-'+id).classList.toggle('open'); }
+
+function switchTab(e, id, name) {
+  const body = document.getElementById('item-'+id).querySelector('.faq-body');
+  body.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  body.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  e.target.classList.add('active');
+  const tc = document.getElementById(`tc-${id}-${name}`);
+  if (tc) tc.classList.add('active');
+}
+
+function copyDraft(id, btn) {
+  const el = document.getElementById('draft-'+id);
+  const text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'コピーしました ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'コピー'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+</script>
+</body>
+</html>
